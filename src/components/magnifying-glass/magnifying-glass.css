@@ -1,0 +1,15 @@
+.container {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+}
+
+.magnifying-glass {
+    position: absolute;
+    pointer-events: none;
+}
+
+.text {
+    opacity: 1;
+    transition-duration: 2s;
+}
