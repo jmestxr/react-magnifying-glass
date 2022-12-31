@@ -13,8 +13,13 @@ interface GlassProps {
 
 export const MagnifyingGlass = ({
   children,
-  zoom,
-  glassStyle,
+  zoom = 2,
+  glassStyle = {
+    border: "1px solid black",
+    borderRadius: "50%",
+    width: "50px",
+    height: "50px",
+  },
   offsetLeft = 0,
   offsetTop = 0,
 }: GlassProps) => {
@@ -120,7 +125,7 @@ export const MagnifyingGlass = ({
       setGlassPos(e);
       container.removeEventListener("mousemove", setInitialGlassPos);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
