@@ -4,7 +4,6 @@ import html2canvas from "html2canvas";
 import "./magnifying-glass.css";
 
 interface GlassProps {
-  children: React.ReactNode;
   zoom: number /* zoom factor of the magnifying glass */;
   glassStyle: React.CSSProperties /* user-customised magnifying glass style */;
   offsetLeft?: number /* number of pixels that the cursor is to the top of the center of the glass */;
@@ -12,7 +11,6 @@ interface GlassProps {
 }
 
 export const MagnifyingGlass = ({
-  children,
   zoom = 2,
   glassStyle = {
     border: "1px solid black",
@@ -23,49 +21,55 @@ export const MagnifyingGlass = ({
   offsetLeft = 0,
   offsetTop = 0,
 }: GlassProps) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const glassRef = useRef<HTMLDivElement | null>(null);
 
-  const magnify = useCallback((container: HTMLDivElement, zoom: number) => {
-    let glass: HTMLElement, glassHalfWidth: number, glassHalfHeight: number, bw;
+  const magnify = useCallback((glass: HTMLDivElement, zoom: number) => {
+    let container: HTMLElement | null,
+      glassHalfWidth: number,
+      glassHalfHeight: number,
+      bw;
 
-    /* Remove any existing glass that was previously rendered */
-    container.querySelector(".magnifying-glass")?.remove();
+    container = glass.parentElement;
 
-    /* create the magnifying glass: */
-    glass = document.createElement("DIV");
-    glass.setAttribute("class", "magnifying-glass");
-    Object.assign(glass.style, glassStyle);
+    if (container) {
+      container.setAttribute("class", "container")
 
-    /* set the initial posiiton of the glass */
-    container.addEventListener("mousemove", setInitialGlassPos);
+      /* Remove any existing glass that was previously rendered */
+      container.querySelector(".magnifying-glass")?.remove();
 
-    /*
-     * set background properties for the glass;
-     * set background image to be the specified container that the glass is in
-     */
-    html2canvas(container).then((canvas) => {
-      let img = canvas.toDataURL();
-      glass.style.backgroundImage = "url(" + img + ")";
-      glass.style.backgroundRepeat = "no-repeat";
-      glass.style.backgroundSize =
-        container.offsetWidth * zoom +
-        "px " +
-        container.offsetHeight * zoom +
-        "px";
-      bw = 3;
-      glassHalfWidth = glass.offsetWidth / 2;
-      glassHalfHeight = glass.offsetHeight / 2;
-    });
+      /* set the initial posiiton of the glass */
+      container.addEventListener("mousemove", setInitialGlassPos);
 
-    /* Hide the glass at first, only show for the first time when user moves the mouse */
-    glass.style.visibility = "hidden";
+      /*
+       * set background properties for the glass;
+       * set background image to be the specified container that the glass is in
+       */
+      html2canvas(container).then((canvas) => {
+        if (container) {
+          let img = canvas.toDataURL();
+          glass.style.backgroundImage = "url(" + img + ")";
+          glass.style.backgroundRepeat = "no-repeat";
+          glass.style.backgroundSize =
+            container.offsetWidth * zoom +
+            "px " +
+            container.offsetHeight * zoom +
+            "px";
+          bw = 3;
+          glassHalfWidth = glass.offsetWidth / 2;
+          glassHalfHeight = glass.offsetHeight / 2;
+        }
+      });
 
-    /* insert the glass: */
-    container.insertBefore(glass, container.firstChild);
+      /* Hide the glass at first, only show for the first time when user moves the mouse */
+      glass.style.visibility = "hidden";
 
-    /* execute a function when user moves the magnifying glass over the image: */
-    glass.addEventListener("mousemove", moveMagnifier);
-    container.addEventListener("mousemove", moveMagnifier);
+      /* insert the glass: */
+      container.insertBefore(glass, container.firstChild);
+
+      /* execute a function when user moves the magnifying glass over the image: */
+      glass.addEventListener("mousemove", moveMagnifier);
+      container.addEventListener("mousemove", moveMagnifier);
+    }
 
     function moveMagnifier(e: MouseEvent) {
       /* prevent any other actions that may occur when moving over the image */
@@ -80,19 +84,20 @@ export const MagnifyingGlass = ({
       /* get the cursor's x and y positions: */
       let cursorPos = getCursorPos();
       let { x, y } = cursorPos;
-
-      /* prevent glass from being positioned outside the image: */
-      if (x > container.offsetWidth - glassHalfWidth / zoom) {
-        x = container.offsetWidth - glassHalfWidth / zoom;
-      }
-      if (x < glassHalfWidth / zoom) {
-        x = glassHalfWidth / zoom;
-      }
-      if (y > container.offsetHeight - glassHalfHeight / zoom) {
-        y = container.offsetHeight - glassHalfHeight / zoom;
-      }
-      if (y < glassHalfHeight / zoom) {
-        y = glassHalfHeight / zoom;
+      if (container) {
+        /* prevent glass from being positioned outside the image: */
+        if (x > container.offsetWidth - glassHalfWidth / zoom) {
+          x = container.offsetWidth - glassHalfWidth / zoom;
+        }
+        if (x < glassHalfWidth / zoom) {
+          x = glassHalfWidth / zoom;
+        }
+        if (y > container.offsetHeight - glassHalfHeight / zoom) {
+          y = container.offsetHeight - glassHalfHeight / zoom;
+        }
+        if (y < glassHalfHeight / zoom) {
+          y = glassHalfHeight / zoom;
+        }
       }
 
       /* set glass position: */
@@ -108,10 +113,14 @@ export const MagnifyingGlass = ({
         "px";
 
       function getCursorPos() {
-        let containerPos: { left: number; top: number }, x: number, y: number;
+        let containerPos = { left: 0, top: 0 },
+          x: number,
+          y: number;
 
         /* get image's x and y positions */
-        containerPos = container.getBoundingClientRect();
+        if (container) {
+          containerPos = container.getBoundingClientRect();
+        }
 
         /* calculate the cursor's x and y coordinates, relative to the image: */
         x = e.clientX - containerPos.left;
@@ -123,19 +132,19 @@ export const MagnifyingGlass = ({
     function setInitialGlassPos(e: MouseEvent) {
       console.log("set initial");
       setGlassPos(e);
-      container.removeEventListener("mousemove", setInitialGlassPos);
+      if (container) {
+        container.removeEventListener("mousemove", setInitialGlassPos);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (containerRef.current) {
-      magnify(containerRef.current, zoom);
+    if (glassRef.current) {
+      magnify(glassRef.current, zoom);
     }
   });
 
   return (
-    <div ref={containerRef} className="container">
-      {children}
-    </div>
+    <div ref={glassRef} className="magnifying-glass" style={glassStyle}></div>
   );
 };
