@@ -27,12 +27,12 @@ export const MagnifyingGlass = ({
     let container: HTMLElement | null,
       glassHalfWidth: number,
       glassHalfHeight: number,
-      bw;
+      glassBorderWidth: number;
 
     container = glass.parentElement;
 
     if (container) {
-      container.setAttribute("class", "container")
+      container.setAttribute("class", "container");
 
       /* Remove any existing glass that was previously rendered */
       container.querySelector(".magnifying-glass")?.remove();
@@ -54,7 +54,11 @@ export const MagnifyingGlass = ({
             "px " +
             container.offsetHeight * zoom +
             "px";
-          bw = 3;
+          glassBorderWidth = parseInt(
+            getComputedStyle(glass, null)
+              .getPropertyValue("border-left-width")
+              .replace("px", "")
+          );
           glassHalfWidth = glass.offsetWidth / 2;
           glassHalfHeight = glass.offsetHeight / 2;
         }
@@ -104,12 +108,12 @@ export const MagnifyingGlass = ({
       glass.style.left = x - glassHalfWidth + offsetLeft + "px";
       glass.style.top = y - glassHalfHeight + offsetTop + "px";
 
-      /* display what the glass "sees": */
+      // /* display what the glass "sees": */
       glass.style.backgroundPosition =
         "-" +
-        (x * zoom - glassHalfWidth + bw) +
+        (x * zoom - glassHalfWidth + glassBorderWidth) +
         "px -" +
-        (y * zoom - glassHalfHeight + bw) +
+        (y * zoom - glassHalfHeight + glassBorderWidth) +
         "px";
 
       function getCursorPos() {
