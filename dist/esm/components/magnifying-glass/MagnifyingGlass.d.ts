@@ -1,8 +1,7 @@
 import React from "react";
-import "./magnifying-glass.css";
 interface GlassProps {
-    zoom: number;
-    glassStyle: React.CSSProperties;
+    zoom?: number;
+    glassStyle?: React.CSSProperties;
     offsetLeft?: number;
     offsetTop?: number;
 }

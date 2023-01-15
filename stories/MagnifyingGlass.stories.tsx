@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { MagnifyingGlass } from "../src";
 
-import "../src/components/magnifying-glass/magnifying-glass.css";
-
 export default {
   title: "My Component/MagnifyingGlass",
   component: MagnifyingGlass,
@@ -53,7 +51,6 @@ export const Primary = () => {
             width: "50px",
             borderRadius: "50%",
           }}
-          className="test"
         ></div>
       </div>
     </div>
